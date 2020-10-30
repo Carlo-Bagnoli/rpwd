@@ -1,0 +1,80 @@
+#!/usr/bin/python
+import string
+import secrets
+import sys
+import random
+
+normal_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+special     = string.punctuation
+
+# ARGUMENTS
+pwd_len           = 16
+normal_special_ratio = 4 # 1 / normal_special_ratio = actual_ratio
+num_of_pwd        = 1
+
+# FLAGS
+special_off = False
+
+# ----- BEGIN OF ARGUMENTS -----
+
+if '-l' in sys.argv:
+    number_override = sys.argv[sys.argv.index('-l')+1]
+    if not number_override.isdigit():
+        print('-l argument needs an integer: -l [integer]')
+        exit()
+    pwd_len = int(number_override)
+
+if '-r' in sys.argv:
+    number_override = sys.argv[sys.argv.index('-r')+1]
+    if not number_override.isdigit():
+        print('-r argument needs an integer: -r [integer]')
+        print('The ratio is calculated by the desired actual ratio inverted [e.g 0.25 => (1 / 0.25) => 4]')
+        exit()
+    normal_special_ratio = int(number_override)
+
+appearances = [pwd_len - pwd_len//normal_special_ratio, pwd_len//normal_special_ratio]
+if '--special-appearances' in sys.argv:
+    number_override = sys.argv[sys.argv.index('--special-appearances')+1]
+    if not number_override.isdigit():
+        print('--special-appearances argument needs an integer: --special-appearances [integer]')
+        exit()
+    appearances = [pwd_len - int(number_override), int(number_override)]
+
+if '-t' in sys.argv:
+    number_override = sys.argv[sys.argv.index('-t')+1]
+    if not number_override.isdigit():
+        print('-t argument needs an integer: -t [integer]')
+        exit()
+    num_of_pwd = int(number_override)
+
+if '--remove' in sys.argv:
+    chars_to_remove = sys.argv[sys.argv.index('--remove')+1]
+    if not all([i in special for i in chars_to_remove]):
+        print('--remove needs the special characters to remove')
+        exit()
+    for char in chars_to_remove:
+        special = special.replace(char, '')
+
+# ----- END OF ARGUMENTS -----
+
+# ----- BEGIN OF FLAGS -----
+
+if '-H' in ''.join(sys.argv):
+    special_off = True
+
+if '--list-all-special' in sys.argv:
+    print(special)
+    exit()
+
+# ----- END OF FLAGS -----
+ 
+for i in range(num_of_pwd):
+    part_a = ''.join([secrets.choice(normal_characters) for i in range(appearances[0])])
+
+    part_b = ''.join([secrets.choice(special) for i in range(appearances[1])])
+
+    result = list(part_a + part_b*(not special_off))
+
+    random.shuffle(result)
+
+    print(*result, sep='')
